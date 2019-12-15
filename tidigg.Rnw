@@ -1,0 +1,124 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+<<>>=
+library(tidyverse)
+library(readxl)
+    raclav19 <- read_excel("~/Scrivania/Trasfusionale/datiprover/raclav19.xls")
+raclav19ce <- filter(raclav19, cod_emc=="25")
+# select per colonne; filter per righe. 
+scarico19 <- read_excel("~/Scrivania/Trasfusionale/datiprover/scarico19.xls")
+@
+<<fig=true>>=
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut))
+@
+<<fig=true>>=
+ggplot(data = diamonds) + stat_count(mapping = aes(x = cut))
+@
+<<fig=true>>=
+ggplot(data = diamonds) + stat_density(mapping = aes(x = cut))
+@
+<<fig=true>>=
+demo <- tribble(
+~a,
+~b,
+"bar_1", 20,
+"bar_2", 30,
+"bar_3", 40
+)
+ggplot(data = demo) +
+geom_bar(
+mapping = aes(x = a, y = b), stat = "identity"
+)
+@
+
+<<fig=true>>=
+# In Percentuale proporzione
+ggplot(data = diamonds) +
+geom_bar(
+mapping = aes(x = cut, y = ..prop.., group = 1))
+@
+<<fig=true>>=
+ggplot(data = diamonds) +
+stat_summary(
+mapping = aes(x = cut, y = depth),
+fun.ymin = min,
+fun.ymax = max,
+fun.y = median
+
+)
+@
+<<fig=true>>=
+ggplot(data = diamonds) +
+geom_bar(mapping = aes(x = cut, color = cut))
+@
+
+
+<<fig=true>>=
+ggplot(data = diamonds) +
+geom_bar(mapping = aes(x = cut, fill = cut))
+@
+<<fig=true>>=
+ggplot(data = diamonds) +
+geom_bar(mapping = aes(x = cut, fill = clarity))
+@
+
+<<fig=true>>=
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity))
+@
+<<fig=true>>=
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity), position = "fill")
+@
+
+<<fig=true>>=
+ggplot(data = raclav19ce) + geom_bar(mapping = aes(x = tipo_sacca, fill = lotto))
+@
+<<fig=true>>=
+ggplot(data = raclav19ce) + geom_bar(mapping = aes(x = tipo_sacca, fill = lotto),
+position = "fill"
+)
+@
+<<>>=
+emcxrep00 <- filter(scarico19, cat_emc !="PLT" | descr_reparto != "ESTERNI TERRITORIO")
+emcxrep0 <- filter(emcxrep00, cat_emc != "SIE" & descr_reparto != "KEDRION")
+emcxrep0chi <- filter(emcxrep0, descr_reparto == "PRONTO SOCCORSO MEDICO" | descr_reparto == "ORTOPEDIA I " | descr_reparto == "CH. GENERALE"   | descr_reparto == "UROLOGIA"  | descr_reparto == "CHIRURGIA VASCOLARE"| descr_reparto == "RIANIMAZIONE" | descr_reparto == "OSTETRICIA GINECOLOGIA")
+emcxrep0med<- filter(emcxrep0, descr_reparto != "PRONTO SOCCORSO MEDICO" | descr_reparto != "ORTOPEDIA I " | descr_reparto != "CH. GENERALE"   | descr_reparto != "UROLOGIA"  | descr_reparto != "CHIRURGIA VASCOLARE"| descr_reparto != "RIANIMAZIONE" | descr_reparto != "OSTETRICIA GINECOLOGIA")
+
+emcxrep <- ggplot(data = emcxrep0) + geom_bar(mapping = aes(x = cat_emc, fill = descr_reparto))
+emcxrepchi <- ggplot(data = emcxrep0chi) + geom_bar(mapping = aes(x = cat_emc, fill = descr_reparto))
+emcxrepmed <- ggplot(data = emcxrep0med) + geom_bar(mapping = aes(x = cat_emc, fill = descr_reparto))
+@
+
+<<fig=TRUE>>=
+emcxrep + theme(legend.position = "none") +  scale_y_continuous(breaks = seq(500, 4000, by = 500))
+@
+<<fig=True>>=
+emcxrepchi + theme(legend.position = "bottom") +  scale_y_continuous(breaks = seq(500, 4000, by = 500)) +
+guides( color = guide_legend( nrow = 3, override.aes = list(size = 2)))
+@
+<<fig=True>>=
+emcxrepmed + theme(legend.position = "bottom") +  scale_y_continuous(breaks = seq(500, 4000, by = 500)) +
+guides( color = guide_legend (ncol= 2, nrow = 10, override.aes = list(size = 2)))
+@
+
+<<>>=
+scarico19 %>% filter(descr_reparto=="ORTOPEDIA I") %>% count(codice_anagrafico_individuale)
+scarico19 %>% filter(descr_reparto=="PRONTO SOCCORSO MEDICO") %>% count(codice_anagrafico_individuale)
+
+@
+
+
+
+<<>>=
+tapply(scarico19$visualizza_livello, scarico19$descr_reparto, length)
+tapply(scarico19$visualizza_livello, scarico19$cat_emc, length)
+tapply(scarico19$visualizza_livello, scarico19$cat_emc, length)
+@
+<<>>=
+nsaccheperpaz <- tapply(scarico19$codice_anagrafico_individuale, scarico19$descr_reparto, table)
+@
+
+
+\end{document}

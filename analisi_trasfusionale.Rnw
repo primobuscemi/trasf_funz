@@ -1,0 +1,216 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+<<>>=
+trasfusionale <- read.csv("~/Scrivania/Report Statistici Sweave /Analisi Supporto Trasfusionale/trasfusionale.csv")
+dati<- trasfusionale
+@
+
+  \section{totale: tutti i reparti}
+<<>>=
+library(dplyr)
+@
+<<results=hide>>=
+  emc_25 <- filter(dati, emc==25)
+emc_25
+@
+numero di sacche dalla freq assoluta dei pazienti:
+<<results=hide>>=
+fa_cai <- table(emc_25$cai)
+fa_cai
+@
+n. di pazienti per numero di unità di emazie ricevute (calcolato dalla freq assoluta del n. di sacche fatto dai pazienti)
+<<>>=
+fa_paz <- table(fa_cai)
+fa_paz
+@
+<<>>=
+df_fa_cai <- data.frame(fa_cai)
+summary(df_fa_cai$Freq)
+@
+<<>>=
+z <-  round(prop.table(table(fa_cai))*100, digits=2)
+z
+@
+
+\section{ID=13. Ortopedia I}
+<<results=hide>>=
+emc_25_id_13 <- filter(emc_25, id_reparto==13)
+fa_cai_13 <- table(emc_25_id_13$cai)
+fa_cai_13
+@
+<<>>=
+fa_paz_13 <- table(fa_cai_13)
+fa_paz_13
+@
+<<>>=
+df_fa_cai_13 <- data.frame(fa_cai_13)
+summary(df_fa_cai_13$Freq)
+@
+\section{ID=31. Pronto Soccorso}
+<<results=hide>>=
+emc_25_id_31 <- filter(emc_25, id_reparto==31)
+fa_cai_31 <- table(emc_25_id_31$cai)
+ fa_cai_31
+@
+<<>>=
+fa_paz_31 <- table(fa_cai_31)
+fa_paz_31
+@
+<<>>=
+df_fa_cai_31 <- data.frame(fa_cai_31)
+summary(df_fa_cai_31$Freq)
+@
+\section{ID=9. Medicina}
+<<results=hide>>=
+emc_25_id_9 <- filter(emc_25, id_reparto==9)
+fa_cai_9 <- table(emc_25_id_9$cai)
+ fa_cai_9
+@
+<<>>=
+fa_paz_9 <- table(fa_cai_9)
+fa_paz_9
+@
+<<>>=
+df_fa_cai_9 <- data.frame(fa_cai_9)
+summary(df_fa_cai_9$Freq)
+@
+\section{ID=25. Rianimazione}
+<<results=hide>>=
+emc_25_id_25 <- filter(emc_25, id_reparto==25)
+fa_cai_25 <- table(emc_25_id_25$cai)
+ fa_cai_25
+@
+<<>>=
+fa_paz_25 <- table(fa_cai_25)
+fa_paz_25
+@
+<<>>=
+df_fa_cai_25 <- data.frame(fa_cai_25)
+summary(df_fa_cai_25$Freq)
+@
+  \section{over65}
+
+<<results=hide>>=
+emc_25_65 <- filter(emc_25, eta>=65)
+emc_25_65
+@
+numero di sacche dalla freq assoluta dei pazienti:
+<<results=hide>>=
+fa_cai_65 <- table(emc_25_65$cai)
+fa_cai_65
+@
+n. di pazienti per numero di unità di emazie ricevute (calcolato dalla freq assoluta del n. di sacche fatto dai pazienti)
+<<>>=
+fa_paz_65 <- table(fa_cai_65)
+fa_paz_65
+@
+<<>>=
+df_fa_cai_65 <- data.frame(fa_cai_65)
+summary(df_fa_cai_65$Freq)
+@
+<<>>=
+z_65 <-  round(prop.table(table(fa_cai_65))*100, digits=2)
+z_65
+@
+  \section{under65}
+
+<<results=hide>>=
+emc_25_64 <- filter(emc_25, eta<=64)
+emc_25_64
+@
+numero di sacche dalla freq assoluta dei pazienti:
+<<results=hide>>=
+fa_cai_64 <- table(emc_25_64$cai)
+fa_cai_64
+@
+n. di pazienti per numero di unità di emazie ricevute (calcolato dalla freq assoluta del n. di sacche fatto dai pazienti)
+<<>>=
+fa_paz_64 <- table(fa_cai_64)
+fa_paz_64
+@
+<<>>=
+df_fa_cai_64 <- data.frame(fa_cai_64)
+summary(df_fa_cai_64$Freq)
+@
+<<>>=
+z_64 <-  round(prop.table(table(fa_cai_64))*100, digits=2)
+z_64
+@
+<<results=hide>>=
+format(as.Date(dati$datamov, format = "%d/%m/%y"))
+@
+<<results=hide>>=
+dati %>%
+ select(datamov, emc, eta) %>%
+ filter(datamov >= as.Date("18-08-2015"))
+@
+\section{ID=100}
+<<results=hide>>=
+emc_25_id_100 <- filter(emc_25, id_reparto==100)
+fa_cai_100 <- table(emc_25_id_100$cai)
+ fa_cai_100
+@
+<<>>=
+fa_paz_100 <- table(fa_cai_100)
+fa_paz_100
+@
+<<>>=
+df_fa_cai_100 <- data.frame(fa_cai_100)
+summary(df_fa_cai_100$Freq)
+@
+\section{ID=102}
+<<results=hide>>=
+emc_25_id_102 <- filter(emc_25, id_reparto==102)
+fa_cai_102 <- table(emc_25_id_102$cai)
+ fa_cai_102
+@
+<<>>=
+fa_paz_102 <- table(fa_cai_102)
+fa_paz_102
+@
+<<>>=
+df_fa_cai_102 <- data.frame(fa_cai_102)
+summary(df_fa_cai_102$Freq)
+@
+\section{ID=9}
+<<results=hide>>=
+emc_25_id_9 <- filter(emc_25, id_reparto==9)
+fa_cai_9 <- table(emc_25_id_9$cai)
+ fa_cai_9
+@
+<<>>=
+fa_paz_9 <- table(fa_cai_9)
+fa_paz_9
+@
+<<>>=
+df_fa_cai_9 <- data.frame(fa_cai_9)
+summary(df_fa_cai_9$Freq)
+@
+\section{Analisi per eta reparti}
+<<>>=
+trasfusionale <- read.csv("~/Scrivania/Report Statistici Sweave /Analisi Supporto Trasfusionale/trasfusionale.csv")
+
+library(lubridate)
+library(dplyr)
+<<results=hide>>=
+format(as.Date(dati$datamov, format = "%d/%m/%y"))
+inizio2018 <- dmy(01/01/2018)
+fine2018 <- dmy(31/12/2018)
+anno_18 <- new_interval(inizio2018, fine2018)
+as.period(anno_18)
+@
+
+<<>>=
+dati <- filter (trasfusionale) 
+older_65_ort <- filter(dati, emc==25, eta>=65, id_reparto==13)
+older_65_ort 
+dedu_older_65_ort <- unique(older_65_ort [  , 1:5] )
+dedu_older_65_ort
+
+table_older_65_ort <- table(older_65_ort$cai)
+table_older_65_ort
+@
+
+\end{document}

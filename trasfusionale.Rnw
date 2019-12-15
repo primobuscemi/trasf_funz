@@ -1,0 +1,688 @@
+\documentclass[11pt,a4paper,final]{article}
+\usepackage[english,italian]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{bibleref}
+\usepackage{imakeidx}
+\usepackage{eurosym}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage[left=2.5cm,right=2.5cm,top=3cm,bottom=3cm]{geometry}
+\author{Direttore Dr Filippo Buscemi}
+\title{Analisi di sistema dal 01 giugno al 30 settembre 2019 \\ UOC di Medicina Trasfusionale di Agrigento}
+\date{} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               packages personali           %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{microtype}
+\usepackage{eurosym}
+\usepackage{cite}
+\usepackage{sectsty}
+\chapterfont{\fontsize{13}{11}\selectfont}
+\sectionfont{\fontsize{13}{11}\selectfont}
+    
+
+\usepackage{lmodern}
+\usepackage{pgfplots}
+\usepackage[output-decimal-marker={,}]{siunitx}
+
+\usepackage{subfig}
+
+%\pgfplotsset{width=7cm,compat=1.15}
+%\usepgfplotslibrary{fillbetween}
+%\usepgfplotslibrary{statistics}
+
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+
+
+\begin{titlepage}
+\maketitle
+
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       Raccolta Sangue Intero                       %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section*{Library utilizzate}
+<<>>=
+library(xtable)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(mgcv)
+library(nlme)
+library(animint2)
+library(GGally)
+library(ggdendro)
+library(ggfortify)
+library(ggthemes)
+library(LabRS)
+library(reshape2)
+library(RGraphics)
+library(gridExtra)
+
+
+donazioni <- read.csv("~/Scrivania/Report Statistici Sweave /trasfusionale/rsdonazione.csv")
+mydata <- donazioni
+ix <- 1:14
+@
+
+\section{Raccolta di Sangue Intero}
+\subsection*{Valutazione degli operatori}
+
+<<results=hide>>=
+summary(mydata)
+summary(mydata$operatore)
+xtable(table((mydata$operatore)))
+@
+\begin{center}
+\begin{tabular}{|l|l|r|r|}
+\hline
+Operatore Apertura & Operatore Chiusura & Tipo Sacca & Numero raccolte di SI\\ \hline  
+Antonino mangiapane & antonino mangiapane & CQ31555 & 11 \\ \hline
+Antonio marotta & antonio marotta & C3974 & 162 \\ \hline 
+Carmelo calabrese & carmelo calabrese & C3974 & 111 \\ \hline
+Concetta lobrutto & concetta lobrutto & CQ31555 & 33\\ \hline 
+Crocetta traina & crocetta traina & CQ31555 & 19 \\ \hline
+Elio franciamore & bilance & C3974 & 6 \\ \hline
+Elio franciamore & elio franciamore &  C3974 &   91  \\ \hline 
+Enzo saccomanno & enzo saccomanno &  CQ31555 & 10 \\ \hline 
+Francesco mirti & francesco mirti &  CQ31555 & 44 \\ \hline
+Giovanni gallea & giovanni gallea &  C3974 & 151 \\ \hline
+Pietro Paternò & bilance &  C3974 &  8 \\ \hline
+Pietro Paternò & Pietro paternò &  C3974 & 3 \\ \hline
+Pietro Paternò & Roberto spitali &  C3974 & 1 \\ \hline
+Pietro Paternò & bilance &  CQ31555 & 3 \\ \hline
+Pietro Paternò & Pietro paternò &  C3974 & 207 \\ \hline
+Pietro Paternò & Pietro paternò &  CQ31555 & 133 \\ \hline
+Pietro Paternò & Roberto spitali &  C3974 & 23 \\ \hline
+Pietro Paternò & Roberto spitali &  CQ31555 & 12 \\ \hline
+Roberto Spitali & bilance &  C3974 & 3 \\ \hline
+Roberto Spitali & bilance &  CQ31555 & 1 \\ \hline
+Roberto Spitali & Roberto spitali &  CQ31555 & 1 \\ \hline 
+Roberto Spitali & Pietro paternò &  C3974 & 14 \\ \hline
+Roberto Spitali & Pietro paternò &  CQ31555 & 13 \\ \hline
+Roberto Spitali & Roberto spitali &  C3974 & 280 \\ \hline
+Roberto Spitali & Roberto spitali &  CQ31555 & 154 \\ \hline
+NA&NA&NA& 1 \\ \hline
+&& Totale & 1.495 \\ \hline
+\end{tabular}
+\end{center}
+\newpage
+<<>>=
+DF_RI <- filter(mydata, mydata$volume>= "405")
+slideinf <- ggplot(DF_RI, aes(operatore, volume)) + geom_boxplot() + ylim(350, 500)
+@
+<<fig=TRUE>>=
+slideinf
+@
+<<results=hide>>=
+summary(mydata$operatore)
+sopra405 <- (xtable(filter(mydata,mydata$volume>=405)))
+@
+<<results=hide>>=
+summary(sopra405$operatore)
+@
+
+<<>>=
+slideinf2 <- slideinf + geom_jitter(shape=16, position=position_jitter(0.2))
+@
+<<fig=TRUE>>=
+slideinf2
+@
+<<results=hide>>=
+xtable(table((DF_RI$operatore)))
+@
+<<>>=
+DF_RNI <- filter(mydata, volume<=405)
+slideinfni <- ggplot(DF_RNI, aes(x=operatore, y=volume)) + geom_boxplot() + ylim(0, 450)
+@
+<<fig=TRUE>>=
+slideinfni
+@
+<<>>=
+summary(DF_RNI$operatore)
+sotto405 <- (xtable(filter(mydata,mydata$volume<=405)))
+sotto405$cdm
+@
+<<>>=
+slideinfni2 <- slideinfni + geom_jitter(shape=16, position=position_jitter(0.2))
+@
+<<fig=TRUE>>=
+slideinfni2
+@
+\subsection{Valutazione Lotti}
+<<results=hide>>=
+summary(mydata$lotto)
+xtable(table((mydata$lotto)))
+@
+
+
+% latex table generated in R 3.4.4 by xtable 1.8-4 package
+% Fri Oct 11 17:04:41 2019
+\begin{table}[ht]
+\centering
+\begin{tabular}{lr} \\ \hline 
+& Unità \\ \hline
+NA &   1 \\
+41MC17FB00 &   3 \\
+41ML26FA00 & 191 \\
+41MM07FC00 &  33 \\
+41NB11FA0\& &   1 \\
+41NB11FA00 & 550 \\
+41NC23FA00 & 477 \\
+85MM27FA00 & 171 \\
+85MM29FB00 &  68 \\ \hline
+\end{tabular}\end{table}
+
+\subsection {Valutazione volumi e tempi}
+\subsubsection {Volume delle unità di sangue intero}
+
+<<results=hide>>=
+    summary(mydata$vol)
+    racidonee <-(mydata$vol>=410)
+    summary(racidonee)
+    racidonee450 <-(mydata$vol>=450)
+    summary(racidonee450)
+    racidoneeA450 <-(mydata$vol<450)
+    summary(racidoneeA450)
+    racidoneeS490 <-(mydata$vol>490)
+    summary(racidoneeS490)
+@
+<<results=hide>>=
+xtable(table(mydata$vol))
+@
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|r|}
+\hline
+& Volume sacche \\ \hline
+Min & 11 \\ \hline
+1st Qu.  & 449 \\ \hline
+Median & 450 \\ \hline
+Mean & 447.2 \\ \hline
+3rd Qu. & 450 \\ \hline
+Max & 463 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+\vspace{5pt}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Vol < 410 ml & Vol > 410 ml \\ \hline
+24 & 1471 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+\subsubsection {Tempo di raccolta delle unità di Sangue Intero}
+<<results=hide>>=
+    summary(mydata$durata.1)
+    tempoidonee <-(mydata$durata.1 <= 12)
+    summary(tempoidonee)
+@
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+ & Tempo di raccolta \\ \hline
+Min & 0 \\ \hline
+1st Qu.  & 4 \\ \hline
+Median & 5 \\ \hline
+Mean & 4.99 \\ \hline
+3rd Qu. & 6 \\ \hline
+Max & 13 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+\vspace{5pt}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Secondi <= 12 ml & Secondi > 12  \\ \hline
+1494 & 1 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+
+\subsection {Sedi di Raccolta}
+<<results=hide>>=
+    summary(mydata$punto)
+    round(prop.table(table(mydata$punto))*100, digits=2)    
+@
+
+\vspace{5pt}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|r|r|}
+\hline
+Sede & N.unità & $\%$ \\ \hline
+Sicu & 5 & 0.4 \\ \hline
+Frates Cammarata & 117 & 7.8 \\ \hline
+Emoteca 1(12) & 174 & 11.6 \\ \hline
+Emoteca 2(13) & 324 & 21.7\\ \hline
+UOC Trasfusionale & 851 & 56.9 \\ \hline
+NA & 24 & 1.6 \\ \hline
+Totale & 1.495 & 100 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                           ADAS1 (12)                                           %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Sede di raccolta ADAS1}
+<<results=hide>>=
+    library(dplyr)
+    ADAS1<- filter(mydata, punto == 12)
+    summary(ADAS1)
+    summary(ADAS1)
+    summary(ADAS1$note.1)
+    xtable(table(summary(ADAS1$note.1)))
+@
+\subsection*{ADAS1: Valutazione degli operatori}
+
+\begin{center}
+
+\begin{tabular}{|l|l|r|r|r|}
+\hline
+Operatore Apertura & Operatore Chiusura & Tipo Sacca & Numero raccolte di SI & ADAS1 \\ \hline  
+Antonino mangiapane & antonino mangiapane & CQ31555 & 11 & 0\\ \hline
+Antonio marotta & antonio marotta & C3974 & 162 & 142 \\ \hline 
+Carmelo calabrese & carmelo calabrese & C3974 & 111 & 9 \\ \hline
+Concetta lobrutto & concetta lobrutto & CQ31555 & 33 & 0\\ \hline 
+Crocetta traina & crocetta traina & CQ31555 & 19 & 0 \\ \hline
+Elio franciamore & bilance & C3974 & 6 & 0 \\ \hline
+Elio franciamore & elio franciamore &  C3974 & 91 & 11  \\ \hline 
+Enzo saccomanno & enzo saccomanno &  CQ31555 & 10 & 0 \\ \hline 
+Francesco mirti & francesco mirti &  CQ31555 & 44 & 0 \\ \hline
+Giovanni gallea & giovanni gallea &  C3974 & 151 & 11 \\ \hline
+Pietro Paternò & bilance &  C3974 &  8 & 0 \\ \hline
+Pietro Paternò & Pietro paternò &  C3974 & 3 & 0 \\ \hline
+Pietro Paternò & Roberto spitali &  C3974 & 1 & 0 \\ \hline
+Pietro Paternò & bilance &  CQ31555 & 3 & 0 \\ \hline
+Pietro Paternò & Pietro paternò &  C3974 & 207 & 0 \\ \hline
+Pietro Paternò & Pietro paternò &  CQ31555 & 133 & 0 \\ \hline
+Pietro Paternò & Roberto spitali & C3974 & 23 & 0 \\ \hline
+Pietro Paternò & Roberto spitali &  CQ31555 & 12 & 0 \\ \hline
+Roberto Spitali & bilance &  C3974 & 3 & 0 \\ \hline
+Roberto Spitali & bilance &  CQ31555 & 1 & 0 \\ \hline
+Roberto Spitali & Roberto spitali &  CQ31555 & 1 & 0 \\ \hline 
+Roberto Spitali & Pietro paternò &  C3974 & 14 & 0 \\ \hline
+Roberto Spitali & Pietro paternò &  CQ31555 & 13 & 0 \\ \hline
+Roberto Spitali & Roberto spitali &  C3974 & 280 & 0 \\ \hline
+Roberto Spitali & Roberto spitali &  CQ31555 & 154 & 0 \\ \hline
+NA & NA & NA & 1 & 1 \\ \hline
+& & Totale & 1.495 & 174 \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection{ADAS: Valutazione Lotti}
+<<results=hide>>=
+summary(ADAS1$lotto)
+xtable(table(summary(ADAS1$lotto)))
+@
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|r|}
+\hline
+Lotto & Numero sacche \\ \hline
+41NB11FA0$\&$ & 0 \\ \hline
+41MC17FB00 &  0 \\ \hline
+41MM07FC00 & 13 \\ \hline
+85MM29FB00 & 0 \\ \hline
+85MM27FA00 & 0 \\ \hline
+41ML26FA00 & 0 \\ \hline
+41NC23FA00 & 87 \\ \hline
+41NB11FA00 & 74 \\ \hline
+Totale & 174 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+\subsection {ADAS1: Valutazione volumi e tempi}
+\subsubsection {ADAS1: Volume delle unità di sangue intero}
+<<results=hide>>=
+    summary(ADAS1$vol)
+    Aracidonee <-(ADAS1$vol>=410)
+    summary(Aracidonee)
+    Aracidonee450 <-(ADAS1$vol>=450)
+    summary(Aracidonee450)
+    AracidoneeA450 <-(ADAS1$vol<450)
+    summary(AracidoneeA450)
+    AracidoneeS490 <-(ADAS1$vol>490)
+    summary(AracidoneeS490)
+@
+<<results=hide>>=
+    xtable(table(ADAS1$vol))
+@
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|r|r|}
+\hline
+ & Volume sacche & ADAS1 \\ \hline
+Min & 11 & 11 \\ \hline
+1st Qu.  & 449 & 448 \\ \hline
+Median & 450 & 450 \\ \hline
+Mean & 447.2 & 444.4 \\ \hline
+3rd Qu. & 450 & 451 \\ \hline
+Max & 463 & 462 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+\subsubsection {ADAS1: Tempo di raccolta delle unità di Sangue Intero}
+<<results=hide>>=
+    summary(ADAS1$durata.1)
+    Atempoidonee <-(ADAS1$durata.1 <= 12)
+    summary(Atempoidonee)
+@
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|l|r|}
+\hline
+ & Tempo di raccolta & ADAS1\\ \hline
+Min & 0 & 0\\ \hline
+1st Qu. & 4 & 4 \\ \hline
+Median & 5 & 5  \\ \hline
+Mean & 4.99 & 5 \\ \hline
+3rd Qu. & 6 & 6\\ \hline
+Max & 13 & 12 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+\vspace{5pt}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Secondi <= 12 ml & Secondi > 12  \\ \hline
+174 & 0 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        Lavorazione Emocomponenti                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Raccolta di Sangue Intero}
+
+<<results=hide>>=
+    library(data.table)
+    library(xtable)
+    library(dplyr)
+    lavorazioni <- read.csv("~/Scrivania/Report Statistici Sweave /trasfusionale/lavplasma.csv")
+    mydatal <- (lavorazioni)
+@
+\subsection*{Lavorazione sangue: operatori}
+<<results=hide>>=
+summary(mydatal)
+summary(mydatal$operatore)
+xtable(table(summary(mydatal$operatore)))
+@
+<<>>=
+slideope <- ggplot(mydatal, aes(operatore, mydatal$volume)) + geom_boxplot() + ylim(150, 450)
+@
+<<fig=TRUE>>=
+slideope
+@
+<<>>=
+summary(mydatal$operatore)
+@
+<<>>=
+slideope2 <- slideope + geom_jitter(shape=16, position=position_jitter(0.2))
+@
+<<fig=TRUE>>=
+slideope2
+@
+\subsubsection{Analisi statistica delle differenze}
+Non c'è alcuna differenza tra le unità prodotte dai singoli tecnici 
+<<results=hide>>=
+DF_G <- filter(mydatal, operatore== "gugliara")
+DF_Be <- filter(mydatal, operatore== "bertini")
+DF_Bo <- filter(mydatal, operatore== "bordino")
+DF_Br <- filter(mydatal, operatore== "bruccoleri")
+DF_U <- filter(mydatal, operatore== "urso")
+shapiro.test(DF_G$volume)
+shapiro.test(DF_Be$volume)
+shapiro.test(DF_Bo$volume)
+shapiro.test(DF_Br$volume)
+wilcox.test(DF_G$volume,DF_Be$volume)
+wilcox.test(DF_G$volume,DF_Br$volume)
+wilcox.test(DF_G$volume,DF_Bo$volume)
+wilcox.test(DF_G$volume,DF_U$volume)
+wilcox.test(DF_Be$volume,DF_Bo$volume)
+wilcox.test(DF_Be$volume,DF_Br$volume)
+wilcox.test(DF_Be$volume,DF_U$volume)
+wilcox.test(DF_Bo$volume,DF_Br$volume)
+wilcox.test(DF_Bo$volume,DF_U$volume)
+wilcox.test(DF_Br$volume,DF_U$volume)
+@
+
+
+\subsection*{Lavorazione sangue: scompositori}
+<<>>=
+slidestr <- ggplot(mydatal, aes(strumento, mydatal$volume)) + geom_boxplot() + ylim(150, 450)
+@
+
+<<fig=TRUE>>=
+slidestr
+@
+
+<<>>=
+slidestr2 <- slidestr + geom_jitter(shape=16, position=position_jitter(0.2))
+@
+
+<<fig=TRUE>>=
+slidestr2
+@
+
+<<>>=
+summary(mydatal$strumento)
+@
+
+\subsubsection{Analisi statistica delle differenze}
+Non c'è alcuna differenza tra le unità prodotte dai singoli scompositori 
+
+<<results=hide>>=
+DF_3CPS0121 <- filter(mydatal, strumento== "3CPS0121")
+DF_3CPS0122 <- filter(mydatal, strumento== "3CPS0122")
+DF_3CPT0617  <- filter(mydatal, strumento=="3CPT0617")
+shapiro.test(DF_3CPS0121$volume)
+shapiro.test(DF_3CPS0122$volume)
+shapiro.test(DF_3CPT0617$volume)
+wilcox.test(DF_3CPS0121$volume,DF_3CPS0122$volume)
+wilcox.test(DF_3CPS0121$volume,DF_3CPT0617$volume)
+wilcox.test(DF_3CPS0122$volume,DF_3CPT0617$volume)
+@
+
+\subsection*{Lavorazione sangue: centrifughe}
+Non c'è alcuna differenza tra le unità prodotte dai singoli centrifughe
+
+<<>>=
+slidecen <- ggplot(mydatal, aes(centrifuga, mydatal$volume)) + geom_boxplot() + ylim(150, 450)
+@
+<<fig=TRUE>>=
+slidecen
+@
+<<>>=
+slidecen2 <- slidecen + geom_jitter(shape=16, position=position_jitter(0.2))
+@
+<<fig=TRUE>>=
+slidecen2
+@
+<<>>=
+summary(mydatal$centrifuga)
+@
+
+<<results=hide>>=
+DF_K00120723 <- filter(mydatal, centrifuga=="K00120723")
+DF_K00120423 <- filter(mydatal, centrifuga=="K00120423")
+shapiro.test(DF_K00120723$volume)
+shapiro.test(DF_K00120423$volume)
+wilcox.test(DF_K00120723$volume,DF_K00120423$volume)
+@
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|r|r|}
+\hline
+& &  \\ 
+Operatore & Centrifuga & Numero di sacche \\
+& &  \\ \hline
+Carlo Gugliara & K00120723 & 389 \\ \hline
+Carlo Gugliara & K00120423 & 75 \\ \hline
+Urso Laura & K00120723 & 297 \\ \hline
+Urso Laura & K00120423 & 88 \\ \hline
+Bordino Daniela & K00120723 & 177 \\ \hline
+Bordino Daniela & K00120423 & 158 \\ \hline
+Giuseppe Bertini & K00120423 & 163 \\ \hline
+Giuseppe Bertini & K00120723 & 124 \\ \hline
+Alessandra Bruccoleri & K00120423 & 65 \\ \hline
+Alessandra Bruccoleri & K00120723 & 14 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+\subsection{Lavorazione: valutazione Lotti}
+
+<<results=hide>>=
+xtable(table(summary(mydatal$lotto)))
+@
+<<>>=
+slidelot <- ggplot(mydatal, aes(lotto, mydatal$volume)) + geom_boxplot() + ylim(150, 450)
+@
+<<fig=TRUE>>=
+slidelot
+@
+<<>>=
+slidelot2 <- slidelot + geom_jitter(shape=16, position=position_jitter(0.2))
+@
+<<fig=TRUE>>=
+slidelot2
+@
+<<>>=
+summary(mydatal$lotto)
+@
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|r|}
+\hline
+Lotto & Numero sacche \\ \hline
+41NB11FA0$\&$ & 1 \\ \hline
+41MC17FB00 & 141 \\ \hline
+41MM07FC00 & 32 \\ \hline
+85MM29FB00 & 64 \\ \hline
+85MM27FA00 & 170 \\ \hline
+41ML26FA00 &  189 \\ \hline
+41NC23FA00 &  451 \\ \hline
+41NB11FA00 & 499 \\ \hline
+Totale & 1550 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+\subsection {Valutazione volumi e tempi}
+\subsubsection {Volume delle unità di sangue intero}
+
+<<>>=
+summary(mydatal$volume)
+@
+%ggplot(mydatal, aes(volume))+ geom_histogram(binwidth = 3) + xlim(100, 500)
+%ggplot(mydatal, aes(volume,peso)) + geom_point() + geom_smooth(span = 4) + xlim(150, 370)
+
+
+<<results=hide>>=
+xtable(table(mydatal$vol))
+@
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|l|r|}
+\hline
+& Volume sacche \\ \hline
+Min & 0 \\ \hline
+1st Qu.  & 255 \\ \hline
+Median & 267 \\ \hline
+Mean & 266.1 \\ \hline
+3rd Qu. & 278 \\ \hline
+Max & 973 \\ \hline
+\end{tabular}  
+\end{center}
+\end{table}
+
+\section{Esempi utili}
+
+%ggplot(mydatal, aes(volume))+ geom_histogram(binwidth = 3) + xlim(100, 500)
+%ggplot(mydatal, aes(cod_emc,volume))
+%boxplot(mydata$vol,mydatal$volume)
+%ggplot(mydata) + geom_point(aes(vol,peso))
+%ggplot(registro.pesi, aes(registro.pesi$volume, registro.pesi$peso)) + geom_point(aes(colour = cod_emc))
+%ggplot (mydatal,aes(note, mydatal$volume)) + geom_point()
+%plot(mydata$vol,mydata$peso)
+%boxplot(mydata$vol, mydatal$volume)
+
+
+<<fig=TRUE>>=
+ggplot(DF_G, aes(volume))+ geom_histogram(binwidth = 3) + xlim(100, 370)
+@
+
+
+<<fig=TRUE>>=
+ggplot(DF_Be, aes(volume))+ geom_histogram(binwidth = 3) + xlim(100, 370)
+@
+
+
+<<fig=TRUE>>=
+ggplot(DF_Br, aes(volume))+ geom_histogram(binwidth = 3) + xlim(100, 370)
+@
+
+
+<<fig=TRUE>>=
+ggplot(DF_Bo, aes(volume))+ geom_histogram(binwidth = 3) + xlim(100, 370)
+@
+
+
+<<fig=TRUE>>=
+ggplot(DF_U, aes(volume))+ geom_histogram(binwidth = 3) + ylim(100, 370)
+@
+
+\section{FATTORE PROVA}
+<<>>=
+mydatal$operatore <- as.factor(mydatal$operatore)
+head(mydatal)
+q <- ggplot(mydatal, aes(x=operatore, y=volume)) + geom_boxplot() + ylim(185, 300)
+@
+
+<<fig=TRUE>>=
+ggplot(mydatal, aes(x=operatore, y=volume)) + geom_boxplot() + ylim(185, 300)
+@
+<<fig=TRUE>>=
+q
+@
+<<fig=TRUE>>=
+ggplot(mydatal, aes(dt_attiv, volume)) + geom_line() + ylim(200, 400)
+
+@
+
+
+\end{document}
